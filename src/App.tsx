@@ -6,6 +6,7 @@ import { ProductsPage } from './pages/ProductsPage'
 import { PortfolioPage } from './pages/PortfolioPage'
 import { BlogPage } from './pages/BlogPage'
 import { ContactPage } from './pages/ContactPage'
+import { AdminPage } from './pages/AdminPage'
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
       <Route path="/portfolio" element={<PortfolioPage />} />
       <Route path="/blog" element={<BlogPage />} />
       <Route path="/contact" element={<ContactPage />} />
+      <Route path="/admin" element={<AdminPage />} />
     </Routes>
   )
 }

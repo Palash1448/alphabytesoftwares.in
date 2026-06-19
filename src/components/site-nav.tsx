@@ -20,8 +20,8 @@ export function SiteNav() {
     <header className="sticky top-0 z-50 backdrop-blur-md bg-background/85 border-b border-border">
       <div className="mx-auto max-w-[1320px] px-5 md:px-8 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 font-display font-bold text-lg tracking-tight">
-          <span className="inline-block w-8 h-8 rounded-md bg-[var(--gradient-dark)] grid place-items-center text-[color:var(--gold)] font-bold">α</span>
-          <span>AlphaBytes</span>
+          <img src="/alphabyte_logo.png" alt="AlphaByte" className="w-8 h-8 rounded-md object-contain" />
+          <span>AlphaByte</span>
         </Link>
         <nav className="hidden md:flex items-center gap-7 text-sm font-medium">
           {links.map((l) => (

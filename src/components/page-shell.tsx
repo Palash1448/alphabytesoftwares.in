@@ -10,7 +10,7 @@ export function PageShell({ children }: { children: ReactNode }) {
       <main className="flex-1">{children}</main>
       <SiteFooter />
       <a
-        href="https://wa.me/919999999999?text=Hi%20AlphaBytes%2C%20I%27m%20interested%20in%20your%20services"
+        href="https://wa.me/919999999999?text=Hi%20AlphaByte%2C%20I%27m%20interested%20in%20your%20services"
         target="_blank" rel="noreferrer"
         className="fixed bottom-5 right-5 z-40 grid place-items-center w-14 h-14 rounded-full bg-emerald text-white shadow-elegant hover:scale-105 transition-transform"
         aria-label="Chat on WhatsApp"

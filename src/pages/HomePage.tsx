@@ -29,7 +29,7 @@ const products = [
 ];
 
 const testimonials = [
-  { quote: "AlphaBytes shipped our ERP twice as fast as our previous vendor — and the team genuinely cares.", name: "Rohit Verma", role: "COO, Linkstream Logistics" },
+  { quote: "AlphaByte shipped our ERP twice as fast as our previous vendor — and the team genuinely cares.", name: "Rohit Verma", role: "COO, Linkstream Logistics" },
   { quote: "Our app store ratings jumped from 3.6 to 4.8 after the rebuild. The team is sharp and responsive.", name: "Anjali Mehra", role: "Founder, FitNest" },
   { quote: "Lead volume tripled in 90 days. Their SEO and ad ops actually move numbers.", name: "Karthik Iyer", role: "Marketing Head, Greenstone" },
 ];
@@ -120,7 +120,7 @@ export function HomePage() {
       <section className="py-20 md:py-28">
         <div className="mx-auto max-w-[1320px] px-5 md:px-8 grid gap-12 lg:grid-cols-2 items-center">
           <div>
-            <div className="text-xs font-semibold tracking-[0.2em] uppercase text-gold mb-3">Why AlphaBytes</div>
+            <div className="text-xs font-semibold tracking-[0.2em] uppercase text-gold mb-3">Why AlphaByte</div>
             <h2 className="text-3xl md:text-5xl font-bold">A team that ships — and stays.</h2>
             <p className="text-muted-foreground mt-5 text-lg">We pair senior engineers with disciplined project managers so your roadmap stays on time, on budget and easy to maintain.</p>
           </div>

@@ -55,7 +55,7 @@ export function HeroSlider() {
           <div className="relative z-10 h-full flex items-center">
             <div className="mx-auto max-w-[1320px] w-full px-5 md:px-8">
               <div className="max-w-2xl text-white">
-                <div className="text-xs md:text-sm font-semibold tracking-[0.25em] uppercase text-gold mb-4">AlphaBytes Softwares</div>
+                <div className="text-xs md:text-sm font-semibold tracking-[0.25em] uppercase text-gold mb-4">AlphaByte Softwares</div>
                 <h1 className="font-display font-bold" style={{ fontSize: "clamp(1.8rem, 5.5vw, 4rem)" }}>{s.headline}</h1>
                 <p className="mt-5 text-white/80 text-base md:text-xl max-w-xl">{s.sub}</p>
                 <Link

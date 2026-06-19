@@ -25,7 +25,7 @@ export function AboutPage() {
           <div>
             <h2 className="text-3xl md:text-4xl font-bold mb-5">Our story</h2>
             <div className="space-y-4 text-muted-foreground leading-relaxed">
-              <p>AlphaBytes Softwares was founded in 2017 with a simple thesis: most teams don't need more software — they need software that actually fits how they work.</p>
+              <p>AlphaByte Softwares was founded in 2017 with a simple thesis: most teams don't need more software — they need software that actually fits how they work.</p>
               <p>Today we're a 40-person studio combining engineering, design and growth marketing under one roof. We ship products, mobile and web apps, ERP systems and the digital marketing that makes them visible.</p>
               <p>We're proudly bootstrapped, headquartered in Bengaluru, and obsessed with shipping work that we'd be happy to sign our name to.</p>
             </div>

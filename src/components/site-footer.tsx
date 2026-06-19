@@ -7,8 +7,8 @@ export function SiteFooter() {
       <div className="mx-auto max-w-[1320px] px-5 md:px-8 py-14 grid gap-10 md:grid-cols-4">
         <div>
           <div className="flex items-center gap-2 text-white font-display font-bold text-lg mb-3">
-            <span className="inline-block w-8 h-8 rounded-md bg-[color:var(--gold)] grid place-items-center text-black">α</span>
-            AlphaBytes
+            <img src="/alphabyte_logo.png" alt="AlphaByte" className="w-8 h-8 rounded-md object-contain" />
+            AlphaByte
           </div>
           <p className="text-sm leading-relaxed text-white/60 mb-4">
             Build Smarter. Scale Faster. Full-spectrum technology partner for products, apps, ERP and growth.
@@ -49,7 +49,7 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-white/10">
         <div className="mx-auto max-w-[1320px] px-5 md:px-8 py-5 flex flex-wrap gap-3 items-center justify-between text-xs text-white/50">
-          <span>© 2026 AlphaBytes Softwares Pvt. Ltd.</span>
+          <span>© 2026 AlphaByte Softwares Pvt. Ltd.</span>
           <div className="flex gap-5">
             <a href="#" className="hover:text-white">Privacy Policy</a>
             <a href="#" className="hover:text-white">Terms &amp; Conditions</a>

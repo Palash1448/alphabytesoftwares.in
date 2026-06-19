@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 
 const links = [
@@ -14,6 +14,8 @@ const links = [
 
 export function SiteNav() {
   const [open, setOpen] = useState(false);
+  const location = useLocation();
+  
   return (
     <header className="sticky top-0 z-50 backdrop-blur-md bg-background/85 border-b border-border">
       <div className="mx-auto max-w-[1320px] px-5 md:px-8 h-16 flex items-center justify-between">
@@ -23,7 +25,15 @@ export function SiteNav() {
         </Link>
         <nav className="hidden md:flex items-center gap-7 text-sm font-medium">
           {links.map((l) => (
-            <Link key={l.to} to={l.to} className="text-foreground/75 hover:text-foreground transition-colors" activeProps={{ className: "text-[color:var(--gold)]" }}>
+            <Link 
+              key={l.to} 
+              to={l.to} 
+              className={`transition-colors ${
+                location.pathname === l.to 
+                  ? "text-[color:var(--gold)]" 
+                  : "text-foreground/75 hover:text-foreground"
+              }`}
+            >
               {l.label}
             </Link>
           ))}

@@ -64,7 +64,7 @@ export function ContactPage() {
                 <div>
                   <h3 className="font-semibold text-sm uppercase text-muted-foreground">Call Us</h3>
                   <p className="text-foreground font-medium mt-1">
-                    <a href="tel:+919999999999" className="hover:text-gold transition-colors">+91 99999 99999</a>
+                    <a href="tel:+919834676051" className="hover:text-gold transition-colors">+91 98346 76051</a>
                   </p>
                 </div>
               </div>
@@ -76,7 +76,7 @@ export function ContactPage() {
                 <div>
                   <h3 className="font-semibold text-sm uppercase text-muted-foreground">Email</h3>
                   <p className="text-foreground font-medium mt-1">
-                    <a href="mailto:hello@alphabytesoftwares.in" className="hover:text-gold transition-colors">hello@alphabytesoftwares.in</a>
+                    <a href="mailto:support@alphabytesoftwares.in" className="hover:text-gold transition-colors">support@alphabytesoftwares.in</a>
                   </p>
                 </div>
               </div>
@@ -86,7 +86,7 @@ export function ContactPage() {
               <h4 className="font-bold mb-2 flex items-center gap-2 text-gold"><MessageSquare size={16}/> Instant WhatsApp Direct</h4>
               <p className="text-xs text-muted-foreground mb-4">Chat directly with a team leader right now.</p>
               <a 
-                href="https://wa.me/919999999999?text=Hi%20AlphaByte%2C%20I%27m%20interested%20in%20your%20services" 
+                href="https://wa.me/919834676051?text=Hi%20AlphaByte%2C%20I%27m%20interested%20in%20your%20services" 
                 target="_blank" 
                 rel="noreferrer"
                 className="inline-flex items-center justify-center h-10 px-4 rounded-md bg-emerald text-white text-xs font-semibold hover:bg-emerald-glow transition-colors"

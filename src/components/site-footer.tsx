@@ -40,7 +40,7 @@ export function SiteFooter() {
         <div>
           <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Contact</h4>
           <ul className="space-y-3 text-sm">
-            <li className="flex gap-2"><MapPin size={16} className="text-[color:var(--gold)] shrink-0 mt-0.5" /> Bengaluru, Karnataka, India</li>
+            <li className="flex gap-2"><MapPin size={16} className="text-[color:var(--gold)] shrink-0 mt-0.5" /> Kolhapur | Sangli | Bengaluru</li>
             <li className="flex gap-2"><Phone size={16} className="text-[color:var(--gold)] shrink-0 mt-0.5" /> <a href="tel:+919834676051">+91 98346 76051</a></li>
             <li className="flex gap-2"><Mail size={16} className="text-[color:var(--gold)] shrink-0 mt-0.5" /> <a href="mailto:support@alphabytesoftwares.in">support@alphabytesoftwares.in</a></li>
             <li><a href="https://wa.me/919834676051" className="inline-flex items-center gap-2 mt-1 px-3 h-10 rounded-md bg-[color:var(--emerald)] text-white text-xs font-semibold"><MessageCircle size={14}/> WhatsApp Us</a></li>

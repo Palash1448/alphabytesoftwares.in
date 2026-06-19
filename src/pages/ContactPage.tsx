@@ -52,8 +52,8 @@ export function ContactPage() {
                   <MapPin size={20} />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-sm uppercase text-muted-foreground">Office Location</h3>
-                  <p className="text-foreground font-medium mt-1">Bengaluru, Karnataka, India</p>
+                  <h3 className="font-semibold text-sm uppercase text-muted-foreground">Serving Regions</h3>
+                  <p className="text-foreground font-medium mt-1">Kolhapur &amp; Sangli (MH) | Bengaluru (KA)</p>
                 </div>
               </div>
               

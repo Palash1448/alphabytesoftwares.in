@@ -188,13 +188,13 @@ initKey<ContactSubmission[]>("ab_submissions", []);
 
 // Initialize Firebase configuration
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyBkWN2NOSIxd96ubJVJqbeCx2AXSbTAsq0",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "alphabytesoftwares.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "alphabytesoftwares",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "alphabytesoftwares.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "476360034979",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:476360034979:web:49ae496744a135d9368d16",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-BGX3D7FHBV"
 };
 
 const app = initializeApp(firebaseConfig);

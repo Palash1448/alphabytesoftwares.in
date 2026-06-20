@@ -23,6 +23,8 @@ export interface Product {
   rating: number;
   isReadyToDeploy: boolean;
   category?: string;
+  image?: string;
+  images?: string[];
 }
 
 export interface Service {
@@ -82,13 +84,87 @@ export interface ContactSubmission {
   isRead: boolean;
 }
 
+export interface Slide {
+  id: string;
+  img: string; // Image path or URL
+  headline: string;
+  sub: string;
+  cta: string;
+  href: string;
+}
+
 // Default Data Seeds
 const DEFAULT_PRODUCTS: Product[] = [
-  { id: "p1", name: "InventoryX ERP", tag: "Stock & finance, one screen", price: "₹24,999", oldPrice: "₹39,999", rating: 4.9, isReadyToDeploy: true },
-  { id: "p2", name: "FleetPilot SaaS", tag: "GPS fleet tracking dashboard", price: "₹14,999", oldPrice: "₹19,999", rating: 4.8, isReadyToDeploy: true },
-  { id: "p3", name: "ClinicCare PMS", tag: "Patients, billing & telehealth", price: "₹29,999", oldPrice: "₹44,999", rating: 5.0, isReadyToDeploy: true },
-  { id: "p4", name: "RetailBoom POS", tag: "Multi-store retail POS", price: "₹9,999", oldPrice: "₹14,999", rating: 4.7, isReadyToDeploy: true },
-  { id: "p5", name: "E-Learning Hub", tag: "LMS platform for training providers", price: "₹34,999", oldPrice: "₹49,999", rating: 4.6, isReadyToDeploy: false }
+  { 
+    id: "p1", 
+    name: "InventoryX ERP", 
+    tag: "Stock & finance, one screen", 
+    price: "₹24,999", 
+    oldPrice: "₹39,999", 
+    rating: 4.9, 
+    isReadyToDeploy: true,
+    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=600&auto=format&fit=crop",
+    images: [
+      "https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?q=80&w=600&auto=format&fit=crop", 
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=600&auto=format&fit=crop"
+    ]
+  },
+  { 
+    id: "p2", 
+    name: "FleetPilot SaaS", 
+    tag: "GPS fleet tracking dashboard", 
+    price: "₹14,999", 
+    oldPrice: "₹19,999", 
+    rating: 4.8, 
+    isReadyToDeploy: true,
+    image: "https://images.unsplash.com/photo-1519003722824-194d4455a60c?q=80&w=600&auto=format&fit=crop",
+    images: [
+      "https://images.unsplash.com/photo-1508873535684-277a3cbcc4e8?q=80&w=600&auto=format&fit=crop", 
+      "https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=600&auto=format&fit=crop"
+    ]
+  },
+  { 
+    id: "p3", 
+    name: "ClinicCare PMS", 
+    tag: "Patients, billing & telehealth", 
+    price: "₹29,999", 
+    oldPrice: "₹44,999", 
+    rating: 5.0, 
+    isReadyToDeploy: true,
+    image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=600&auto=format&fit=crop",
+    images: [
+      "https://images.unsplash.com/photo-1504813184591-015578c77241?q=80&w=600&auto=format&fit=crop", 
+      "https://images.unsplash.com/photo-1516549655169-df83a0774514?q=80&w=600&auto=format&fit=crop"
+    ]
+  },
+  { 
+    id: "p4", 
+    name: "RetailBoom POS", 
+    tag: "Multi-store retail POS", 
+    price: "₹9,999", 
+    oldPrice: "₹14,999", 
+    rating: 4.7, 
+    isReadyToDeploy: true,
+    image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=600&auto=format&fit=crop",
+    images: [
+      "https://images.unsplash.com/photo-1556742031-c6961e8560b0?q=80&w=600&auto=format&fit=crop", 
+      "https://images.unsplash.com/photo-1556741533-974210745481?q=80&w=600&auto=format&fit=crop"
+    ]
+  },
+  { 
+    id: "p5", 
+    name: "E-Learning Hub", 
+    tag: "LMS platform for training providers", 
+    price: "₹34,999", 
+    oldPrice: "₹49,999", 
+    rating: 4.6, 
+    isReadyToDeploy: false,
+    image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop",
+    images: [
+      "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=600&auto=format&fit=crop", 
+      "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?q=80&w=600&auto=format&fit=crop"
+    ]
+  }
 ];
 
 const DEFAULT_SERVICES: Service[] = [
@@ -161,6 +237,13 @@ const DEFAULT_BLOGS: BlogPost[] = [
   }
 ];
 
+const DEFAULT_SLIDES: Slide[] = [
+  { id: "sld1", img: "/hero-1.jpg", headline: "Build Smarter. Scale Faster.", sub: "Software, apps and ERP engineered to grow with your ambition.", cta: "Explore Products", href: "/products" },
+  { id: "sld2", img: "/hero-2.jpg", headline: "Custom Android & iOS Apps", sub: "Native experiences your users will love on every screen.", cta: "See Our Services", href: "/services" },
+  { id: "sld3", img: "/hero-3.jpg", headline: "ERP Tailored for Your Business", sub: "Inventory, HR, payroll and finance — unified on one dashboard.", cta: "Get a Free Quote", href: "/contact" },
+  { id: "sld4", img: "/hero-4.jpg", headline: "Grow Your Brand Digitally", sub: "SEO, paid ads and social storytelling that compound month over month.", cta: "Start Today", href: "/contact" }
+];
+
 // Helper to initialize localStorage key safely
 function initKey<T>(key: string, defaultValue: T): T {
   const data = localStorage.getItem(key);
@@ -185,6 +268,7 @@ initKey<TeamMember[]>("ab_team", DEFAULT_TEAM);
 initKey<PortfolioItem[]>("ab_portfolio", DEFAULT_PORTFOLIO);
 initKey<BlogPost[]>("ab_blogs", DEFAULT_BLOGS);
 initKey<ContactSubmission[]>("ab_submissions", []);
+initKey<Slide[]>("ab_slides", DEFAULT_SLIDES);
 
 // Initialize Firebase configuration
 const firebaseConfig = {
@@ -240,6 +324,11 @@ async function checkAndSeedDatabase() {
       // Seed blog posts
       for (const b of DEFAULT_BLOGS) {
         await setDoc(doc(firestore, "blogs", b.id), b);
+      }
+
+      // Seed hero slides
+      for (const s of DEFAULT_SLIDES) {
+        await setDoc(doc(firestore, "slides", s.id), s);
       }
       
       // Seed default admin in Firebase Auth
@@ -297,6 +386,7 @@ syncCollection("team", "ab_team");
 syncCollection("portfolio", "ab_portfolio");
 syncCollection("blogs", "ab_blogs");
 syncCollection("submissions", "ab_submissions");
+syncCollection("slides", "ab_slides");
 syncStats();
 
 // Database Methods
@@ -523,5 +613,34 @@ export const db = {
 
     // Cloud Firestore Async Update
     deleteDoc(doc(firestore, "submissions", id)).catch((e) => console.error("Firestore deleteSubmission failed:", e));
+  },
+
+  // SLIDES
+  getSlides(): Slide[] {
+    return JSON.parse(localStorage.getItem("ab_slides") || "[]");
+  },
+  saveSlide(s: Slide): void {
+    // Optimistic local update
+    const list = this.getSlides();
+    const index = list.findIndex((x) => x.id === s.id);
+    if (index > -1) {
+      list[index] = s;
+    } else {
+      list.push(s);
+    }
+    localStorage.setItem("ab_slides", JSON.stringify(list));
+    window.dispatchEvent(new Event("db-updated"));
+
+    // Cloud Firestore Async Update
+    setDoc(doc(firestore, "slides", s.id), s).catch((e) => console.error("Firestore saveSlide failed:", e));
+  },
+  deleteSlide(id: string): void {
+    // Optimistic local update
+    const list = this.getSlides().filter((x) => x.id !== id);
+    localStorage.setItem("ab_slides", JSON.stringify(list));
+    window.dispatchEvent(new Event("db-updated"));
+
+    // Cloud Firestore Async Update
+    deleteDoc(doc(firestore, "slides", id)).catch((e) => console.error("Firestore deleteSlide failed:", e));
   }
 };

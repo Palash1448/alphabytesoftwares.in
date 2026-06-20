@@ -1,28 +1,28 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import hero1 from "@/assets/hero-1.jpg";
-import hero2 from "@/assets/hero-2.jpg";
-import hero3 from "@/assets/hero-3.jpg";
-import hero4 from "@/assets/hero-4.jpg";
-
-const slides = [
-  { img: hero1, headline: "Build Smarter. Scale Faster.", sub: "Software, apps and ERP engineered to grow with your ambition.", cta: "Explore Products", href: "/products" },
-  { img: hero2, headline: "Custom Android & iOS Apps", sub: "Native experiences your users will love on every screen.", cta: "See Our Services", href: "/services" },
-  { img: hero3, headline: "ERP Tailored for Your Business", sub: "Inventory, HR, payroll and finance — unified on one dashboard.", cta: "Get a Free Quote", href: "/contact" },
-  { img: hero4, headline: "Grow Your Brand Digitally", sub: "SEO, paid ads and social storytelling that compound month over month.", cta: "Start Today", href: "/contact" },
-];
+import { db } from "@/lib/db";
 
 export function HeroSlider() {
+  const [slides, setSlides] = useState(() => db.getSlides());
   const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
   const resumeTimer = useRef<number | null>(null);
 
   useEffect(() => {
-    if (paused) return;
+    const handleUpdate = () => {
+      setSlides(db.getSlides());
+      setI(0);
+    };
+    window.addEventListener("db-updated", handleUpdate);
+    return () => window.removeEventListener("db-updated", handleUpdate);
+  }, []);
+
+  useEffect(() => {
+    if (paused || slides.length <= 1) return;
     const t = window.setInterval(() => setI((p) => (p + 1) % slides.length), 5000);
     return () => window.clearInterval(t);
-  }, [paused]);
+  }, [paused, slides.length]);
 
   const interact = (fn: () => void) => {
     fn();
@@ -30,6 +30,8 @@ export function HeroSlider() {
     if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
     resumeTimer.current = window.setTimeout(() => setPaused(false), 8000);
   };
+
+  if (slides.length === 0) return null;
 
   return (
     <section

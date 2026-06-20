@@ -21,9 +21,10 @@ import {
   Lock,
   Phone,
   EyeOff,
-  LogOut
+  LogOut,
+  Sliders
 } from "lucide-react";
-import { db, Product, Service, Milestone, TeamMember, AboutStats, PortfolioItem, BlogPost, ContactSubmission, auth } from "@/lib/db";
+import { db, Product, Service, Milestone, TeamMember, AboutStats, PortfolioItem, BlogPost, ContactSubmission, auth, Slide } from "@/lib/db";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 
 export function AdminPage() {
@@ -80,7 +81,7 @@ export function AdminPage() {
     }
   };
 
-  const [activeTab, setActiveTab] = useState<"overview" | "products" | "services" | "about" | "portfolio" | "blog" | "contacts">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "products" | "services" | "about" | "portfolio" | "blog" | "contacts" | "slider">("overview");
 
   // State Management
   const [products, setProducts] = useState<Product[]>([]);
@@ -91,20 +92,23 @@ export function AdminPage() {
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [contacts, setContacts] = useState<ContactSubmission[]>([]);
+  const [slides, setSlides] = useState<Slide[]>([]);
 
   // Modals & Forms State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState<"product" | "service" | "milestone" | "team" | "portfolio" | "blog" | "none">("none");
+  const [modalType, setModalType] = useState<"product" | "service" | "milestone" | "team" | "portfolio" | "blog" | "slide" | "none">("none");
   const [editId, setEditId] = useState<string | null>(null);
   const [selectedContact, setSelectedContact] = useState<ContactSubmission | null>(null);
+  const [newProductImageUrl, setNewProductImageUrl] = useState("");
 
   // Form Fields State
-  const [productForm, setProductForm] = useState<Partial<Product>>({ name: "", tag: "", price: "", oldPrice: "", rating: 5.0, isReadyToDeploy: true });
+  const [productForm, setProductForm] = useState<Partial<Product>>({ name: "", tag: "", price: "", oldPrice: "", rating: 5.0, isReadyToDeploy: true, image: "", images: [] });
   const [serviceForm, setServiceForm] = useState<Partial<Service>>({ iconName: "Code2", title: "", desc: "" });
   const [milestoneForm, setMilestoneForm] = useState<Partial<Milestone>>({ y: "", t: "", d: "" });
   const [teamForm, setTeamForm] = useState<Partial<TeamMember>>({ n: "", r: "" });
   const [portfolioForm, setPortfolioForm] = useState<Partial<PortfolioItem>>({ title: "", category: "Web Development", client: "", year: "", desc: "", link: "#" });
   const [blogForm, setBlogForm] = useState<Partial<BlogPost>>({ title: "", summary: "", content: "", author: "", readTime: "5 min read" });
+  const [slideForm, setSlideForm] = useState<Partial<Slide>>({ img: "/hero-1.jpg", headline: "", sub: "", cta: "", href: "" });
 
   // Load Data
   const refreshData = () => {
@@ -116,6 +120,7 @@ export function AdminPage() {
     setPortfolio(db.getPortfolio());
     setBlogs(db.getBlogs());
     setContacts(db.getSubmissions());
+    setSlides(db.getSlides());
   };
 
   useEffect(() => {
@@ -138,6 +143,8 @@ export function AdminPage() {
       oldPrice: productForm.oldPrice || undefined,
       rating: Number(productForm.rating) || 5.0,
       isReadyToDeploy: !!productForm.isReadyToDeploy,
+      image: productForm.image || "",
+      images: productForm.images || []
     };
     db.saveProduct(newProduct);
     setIsModalOpen(false);
@@ -219,6 +226,22 @@ export function AdminPage() {
     refreshData();
   };
 
+  const handleSlideSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!slideForm.img || !slideForm.headline || !slideForm.sub || !slideForm.cta) return;
+    const newSlide: Slide = {
+      id: editId || `sld_${Date.now()}`,
+      img: slideForm.img,
+      headline: slideForm.headline,
+      sub: slideForm.sub,
+      cta: slideForm.cta,
+      href: slideForm.href || "#",
+    };
+    db.saveSlide(newSlide);
+    setIsModalOpen(false);
+    refreshData();
+  };
+
   const handleStatsSave = (e: React.FormEvent) => {
     e.preventDefault();
     db.saveStats(stats);
@@ -231,13 +254,15 @@ export function AdminPage() {
     setEditId(null);
     setModalType(type);
     setIsModalOpen(true);
+    setNewProductImageUrl("");
     // Reset forms
-    if (type === "product") setProductForm({ name: "", tag: "", price: "", oldPrice: "", rating: 5.0, isReadyToDeploy: true });
+    if (type === "product") setProductForm({ name: "", tag: "", price: "", oldPrice: "", rating: 5.0, isReadyToDeploy: true, image: "", images: [] });
     if (type === "service") setServiceForm({ iconName: "Code2", title: "", desc: "" });
     if (type === "milestone") setMilestoneForm({ y: "", t: "", d: "" });
     if (type === "team") setTeamForm({ n: "", r: "" });
     if (type === "portfolio") setPortfolioForm({ title: "", category: "Web Development", client: "", year: new Date().getFullYear().toString(), desc: "", link: "#" });
     if (type === "blog") setBlogForm({ title: "", summary: "", content: "", author: "", readTime: "5 min read" });
+    if (type === "slide") setSlideForm({ img: "/hero-1.jpg", headline: "", sub: "", cta: "", href: "" });
   };
 
   // Open Modals for Edit
@@ -245,23 +270,32 @@ export function AdminPage() {
     setEditId(item.id);
     setModalType(type);
     setIsModalOpen(true);
-    if (type === "product") setProductForm(item);
+    setNewProductImageUrl("");
+    if (type === "product") {
+      setProductForm({
+        ...item,
+        image: item.image || "",
+        images: item.images || []
+      });
+    }
     if (type === "service") setServiceForm(item);
     if (type === "milestone") setMilestoneForm(item);
     if (type === "team") setTeamForm(item);
     if (type === "portfolio") setPortfolioForm(item);
     if (type === "blog") setBlogForm(item);
+    if (type === "slide") setSlideForm(item);
   };
 
   // Deletions
   const handleDelete = (type: typeof modalType, id: string) => {
-    if (!confirm(`Are you sure you want to delete this ${type}?`)) return;
+    if (!confirm(`Are you sure you want to delete this ${type === "slide" ? "slide" : type}?`)) return;
     if (type === "product") db.deleteProduct(id);
     if (type === "service") db.deleteService(id);
     if (type === "milestone") db.deleteMilestone(id);
     if (type === "team") db.deleteTeamMember(id);
     if (type === "portfolio") db.deletePortfolioItem(id);
     if (type === "blog") db.deleteBlogPost(id);
+    if (type === "slide") db.deleteSlide(id);
     refreshData();
   };
 
@@ -478,6 +512,13 @@ export function AdminPage() {
               <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald text-white animate-pulse`}>{unreadMessagesCount} new</span>
             )}
           </button>
+          <button 
+            onClick={() => setActiveTab("slider")}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-semibold transition-all ${activeTab === "slider" ? "bg-gold text-black shadow-elegant" : "text-muted-foreground hover:bg-secondary"}`}
+          >
+            <span className="flex items-center gap-3"><Sliders size={18} /> Hero Slider</span>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${activeTab === "slider" ? "bg-black/10 text-black" : "bg-secondary text-foreground"}`}>{slides.length}</span>
+          </button>
           <div className="h-px bg-border my-2"></div>
           <button 
             onClick={handleLogout}
@@ -602,6 +643,7 @@ export function AdminPage() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-border text-xs uppercase tracking-wider text-muted-foreground">
+                      <th className="py-3 px-4 w-20">Preview</th>
                       <th className="py-3 px-4">Product Name</th>
                       <th className="py-3 px-4">Tagline</th>
                       <th className="py-3 px-4">Price</th>
@@ -613,6 +655,16 @@ export function AdminPage() {
                   <tbody className="divide-y divide-border text-sm">
                     {products.map((p) => (
                       <tr key={p.id} className="hover:bg-secondary/40 transition-colors">
+                        <td className="py-3 px-4">
+                          <img 
+                            src={p.image || "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=150&auto=format&fit=crop"} 
+                            alt={p.name} 
+                            className="w-12 h-8 object-cover rounded border border-border bg-black/10"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=150&auto=format&fit=crop';
+                            }}
+                          />
+                        </td>
                         <td className="py-3.5 px-4 font-semibold">{p.name}</td>
                         <td className="py-3.5 px-4 text-muted-foreground truncate max-w-[200px]">{p.tag}</td>
                         <td className="py-3.5 px-4 font-mono font-bold text-gold">{p.price}</td>
@@ -990,6 +1042,68 @@ export function AdminPage() {
             </div>
           )}
 
+          {/* TAB: HERO SLIDER */}
+          {activeTab === "slider" && (
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="text-xl font-bold">Hero Slider Manager</h2>
+                  <p className="text-xs text-muted-foreground mt-1">Manage the image slider slides displayed on the homepage</p>
+                </div>
+                <button 
+                  onClick={() => openAddModal("slide")}
+                  className="inline-flex items-center gap-2 bg-emerald hover:bg-emerald-glow text-white text-sm font-semibold px-4 h-10 rounded-md transition-colors animate-in fade-in duration-300"
+                >
+                  <PlusCircle size={16} /> Add Slide
+                </button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-border text-xs uppercase tracking-wider text-muted-foreground">
+                      <th className="py-3 px-4 w-20">Preview</th>
+                      <th className="py-3 px-4">Headline</th>
+                      <th className="py-3 px-4">Subtitle</th>
+                      <th className="py-3 px-4">CTA Button</th>
+                      <th className="py-3 px-4">Link (Href)</th>
+                      <th className="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border text-sm">
+                    {slides.map((s) => (
+                      <tr key={s.id} className="hover:bg-secondary/40 transition-colors">
+                        <td className="py-3 px-4">
+                          <img 
+                            src={s.img} 
+                            alt={s.headline} 
+                            className="w-12 h-8 object-cover rounded border border-border bg-black/10"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=150&auto=format&fit=crop';
+                            }}
+                          />
+                        </td>
+                        <td className="py-3.5 px-4 font-semibold max-w-[150px] truncate">{s.headline}</td>
+                        <td className="py-3.5 px-4 text-muted-foreground truncate max-w-[200px]">{s.sub}</td>
+                        <td className="py-3.5 px-4 text-xs font-mono">{s.cta}</td>
+                        <td className="py-3.5 px-4 text-xs text-gold font-mono truncate max-w-[120px]">{s.href}</td>
+                        <td className="py-3.5 px-4 text-right whitespace-nowrap font-normal">
+                          <button onClick={() => openEditModal("slide", s)} className="p-1.5 text-muted-foreground hover:text-gold mr-2" aria-label="Edit"><Edit size={16} /></button>
+                          <button onClick={() => handleDelete("slide", s.id)} className="p-1.5 text-muted-foreground hover:text-red-500" aria-label="Delete"><Trash2 size={16} /></button>
+                        </td>
+                      </tr>
+                    ))}
+                    {slides.length === 0 && (
+                      <tr>
+                        <td colSpan={6} className="py-8 text-center text-muted-foreground">No slides configured. Click 'Add Slide' to create one.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
         </main>
       </div>
 
@@ -1119,6 +1233,93 @@ export function AdminPage() {
                         />
                         <span>Ready-To-Deploy</span>
                       </label>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">Primary Product Image URL</label>
+                    <div className="flex gap-3 mb-2">
+                      <input 
+                        type="text" 
+                        placeholder="e.g. https://images.unsplash.com/... or public path"
+                        value={productForm.image || ""} 
+                        onChange={(e) => setProductForm({...productForm, image: e.target.value})}
+                        className="flex-1 h-10 px-3 bg-secondary rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-gold"
+                      />
+                      {productForm.image && (
+                        <div className="w-12 h-10 rounded border border-border overflow-hidden bg-black/20 shrink-0 flex items-center justify-center">
+                          <img 
+                            src={productForm.image} 
+                            alt="Primary Preview" 
+                            className="h-full w-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=150&auto=format&fit=crop';
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1.5">Product Gallery Images (Multiple)</label>
+                    
+                    {/* List of current gallery images */}
+                    {productForm.images && productForm.images.length > 0 && (
+                      <div className="grid grid-cols-2 gap-2 mb-3 max-h-40 overflow-y-auto p-2 bg-secondary/30 border border-border rounded-lg">
+                        {productForm.images.map((url, idx) => (
+                          <div key={idx} className="relative rounded border border-border overflow-hidden bg-black/25 flex items-center justify-between p-1.5 gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <img 
+                                src={url} 
+                                alt="Gallery Thumbnail" 
+                                className="w-8 h-8 object-cover rounded bg-black/10 shrink-0"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=150&auto=format&fit=crop';
+                                }}
+                              />
+                              <span className="text-[10px] text-muted-foreground truncate font-mono">{url}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newImages = (productForm.images || []).filter((_, i) => i !== idx);
+                                setProductForm({...productForm, images: newImages});
+                              }}
+                              className="text-red-500 hover:text-red-400 p-1 shrink-0 cursor-pointer"
+                              title="Remove image"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Form to add a new image url to the list */}
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        placeholder="Paste image URL here..."
+                        value={newProductImageUrl} 
+                        onChange={(e) => setNewProductImageUrl(e.target.value)}
+                        className="flex-1 h-9 px-3 bg-secondary rounded-lg border border-border text-xs text-foreground focus:outline-none focus:border-gold"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!newProductImageUrl.trim()) return;
+                          const currentImages = productForm.images || [];
+                          setProductForm({
+                            ...productForm,
+                            images: [...currentImages, newProductImageUrl.trim()]
+                          });
+                          setNewProductImageUrl("");
+                        }}
+                        className="bg-gold hover:bg-gold-glow text-black font-semibold text-xs px-3 h-9 rounded-lg shrink-0 cursor-pointer"
+                      >
+                        Add Image
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -1426,6 +1627,105 @@ export function AdminPage() {
                 <div className="p-4 border-t border-border bg-secondary flex justify-end gap-3">
                   <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 h-10 text-xs font-semibold border border-border hover:bg-secondary rounded-md transition-colors">Cancel</button>
                   <button type="submit" className="bg-gold text-black px-5 h-10 text-xs font-semibold hover:bg-gold-glow rounded-md transition-colors">Save Post</button>
+                </div>
+              </form>
+            )}
+
+            {/* SLIDE FORM */}
+            {modalType === "slide" && (
+              <form onSubmit={handleSlideSave}>
+                <div className="p-6 border-b border-border flex justify-between items-center bg-secondary">
+                  <h3 className="font-bold text-lg">{editId ? "Edit Slide" : "Add Slide"}</h3>
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="text-muted-foreground hover:text-foreground"><X size={20} /></button>
+                </div>
+                <div className="p-6 space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">Image URL / Select Template Image</label>
+                    <div className="grid grid-cols-2 gap-2 mb-2">
+                      <select 
+                        value={slideForm.img || "/hero-1.jpg"}
+                        onChange={(e) => setSlideForm({...slideForm, img: e.target.value})}
+                        className="h-10 px-3 bg-secondary rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-gold"
+                      >
+                        <option value="/hero-1.jpg">Template Image 1 (/hero-1.jpg)</option>
+                        <option value="/hero-2.jpg">Template Image 2 (/hero-2.jpg)</option>
+                        <option value="/hero-3.jpg">Template Image 3 (/hero-3.jpg)</option>
+                        <option value="/hero-4.jpg">Template Image 4 (/hero-4.jpg)</option>
+                        <option value="custom">-- Use Custom URL --</option>
+                      </select>
+                      {slideForm.img && (
+                        <div className="h-10 rounded border border-border overflow-hidden bg-black/20 flex items-center justify-center">
+                          <img 
+                            src={slideForm.img === "custom" ? "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=150&auto=format&fit=crop" : slideForm.img} 
+                            alt="Preview" 
+                            className="h-full w-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=150&auto=format&fit=crop';
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    {/* Input field for custom image URL if "custom" or any custom text is desired */}
+                    <input 
+                      type="text" 
+                      required
+                      placeholder="e.g. /hero-1.jpg or custom image URL"
+                      value={slideForm.img === "custom" ? "" : slideForm.img || ""} 
+                      onChange={(e) => setSlideForm({...slideForm, img: e.target.value})}
+                      className="w-full h-10 px-3 bg-secondary rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-gold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">Headline</label>
+                    <input 
+                      type="text" 
+                      required
+                      placeholder="e.g. Build Smarter. Scale Faster."
+                      value={slideForm.headline || ""} 
+                      onChange={(e) => setSlideForm({...slideForm, headline: e.target.value})}
+                      className="w-full h-10 px-3 bg-secondary rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-gold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">Subtitle</label>
+                    <input 
+                      type="text" 
+                      required
+                      placeholder="e.g. Software, apps and ERP engineered to grow with your ambition."
+                      value={slideForm.sub || ""} 
+                      onChange={(e) => setSlideForm({...slideForm, sub: e.target.value})}
+                      className="w-full h-10 px-3 bg-secondary rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-gold"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">CTA Button Text</label>
+                      <input 
+                        type="text" 
+                        required
+                        placeholder="e.g. Explore Products"
+                        value={slideForm.cta || ""} 
+                        onChange={(e) => setSlideForm({...slideForm, cta: e.target.value})}
+                        className="w-full h-10 px-3 bg-secondary rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-gold"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">Target URL (Href)</label>
+                      <input 
+                        type="text" 
+                        required
+                        placeholder="e.g. /products or /contact"
+                        value={slideForm.href || ""} 
+                        onChange={(e) => setSlideForm({...slideForm, href: e.target.value})}
+                        className="w-full h-10 px-3 bg-secondary rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-gold"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="p-4 border-t border-border bg-secondary flex justify-end gap-3">
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 h-10 text-xs font-semibold border border-border hover:bg-secondary rounded-md transition-colors">Cancel</button>
+                  <button type="submit" className="bg-gold text-black px-5 h-10 text-xs font-semibold hover:bg-gold-glow rounded-md transition-colors">Save Slide</button>
                 </div>
               </form>
             )}

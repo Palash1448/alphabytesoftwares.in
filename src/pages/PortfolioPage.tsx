@@ -1,11 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PageShell, PageHeader } from "@/components/page-shell";
 import { db } from "@/lib/db";
 import { ArrowUpRight } from "lucide-react";
 
 export function PortfolioPage() {
   const [activeCategory, setActiveCategory] = useState<string>("All");
-  const portfolio = db.getPortfolio();
+  const [portfolio, setPortfolio] = useState(() => db.getPortfolio());
+
+  useEffect(() => {
+    const handleUpdate = () => setPortfolio(db.getPortfolio());
+    window.addEventListener("db-updated", handleUpdate);
+    return () => window.removeEventListener("db-updated", handleUpdate);
+  }, []);
 
   // Extract unique categories
   const categories = ["All", ...Array.from(new Set(portfolio.map(item => item.category)))];

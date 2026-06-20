@@ -17,12 +17,69 @@ import {
   TrendingUp,
   Inbox,
   Award,
-  Globe
+  Globe,
+  Lock,
+  Phone,
+  EyeOff,
+  LogOut
 } from "lucide-react";
-import { db, Product, Service, Milestone, TeamMember, AboutStats, PortfolioItem, BlogPost, ContactSubmission } from "@/lib/db";
-import { PageShell } from "@/components/page-shell";
+import { db, Product, Service, Milestone, TeamMember, AboutStats, PortfolioItem, BlogPost, ContactSubmission, auth } from "@/lib/db";
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 
 export function AdminPage() {
+  // Authentication State
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState("");
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  // Monitor Firebase Auth session state
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsAuthenticated(!!user);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError("");
+    
+    if (!loginEmail.includes("@") || !loginEmail.includes(".")) {
+      setLoginError("Please enter a valid email address.");
+      return;
+    }
+    if (!loginPassword) {
+      setLoginError("Please enter your password.");
+      return;
+    }
+    
+    setIsLoggingIn(true);
+    
+    signInWithEmailAndPassword(auth, loginEmail, loginPassword)
+      .then(() => {
+        setLoginPassword("");
+        setLoginEmail("");
+      })
+      .catch((error) => {
+        console.error("Firebase Auth sign in failed:", error);
+        setLoginError("Invalid email address or password.");
+      })
+      .finally(() => {
+        setIsLoggingIn(false);
+      });
+  };
+
+  const handleLogout = () => {
+    if (confirm("Are you sure you want to log out?")) {
+      signOut(auth).catch((error) => {
+        console.error("Firebase Auth sign out failed:", error);
+      });
+    }
+  };
+
   const [activeTab, setActiveTab] = useState<"overview" | "products" | "services" | "about" | "portfolio" | "blog" | "contacts">("overview");
 
   // State Management
@@ -63,6 +120,10 @@ export function AdminPage() {
 
   useEffect(() => {
     refreshData();
+    window.addEventListener("db-updated", refreshData);
+    return () => {
+      window.removeEventListener("db-updated", refreshData);
+    };
   }, []);
 
   // Handle Saves
@@ -217,8 +278,132 @@ export function AdminPage() {
 
   const unreadMessagesCount = contacts.filter((c) => !c.isRead).length;
 
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gradient-dark relative overflow-hidden">
+        {/* Ambient background glows */}
+        <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-gold/5 blur-[120px] pointer-events-none"></div>
+        <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-80 h-80 rounded-full bg-emerald/5 blur-[120px] pointer-events-none"></div>
+
+        <div className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="w-full max-w-md space-y-8 animate-in fade-in zoom-in-95 duration-500">
+            <div className="flex flex-col items-center">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-gold p-0.5 shadow-gold/20 shadow-lg mb-4 flex items-center justify-center">
+                <div className="w-full h-full bg-black rounded-2xl flex items-center justify-center">
+                  <span className="font-display font-black text-xl text-gold">AB</span>
+                </div>
+              </div>
+              <h2 className="text-3xl font-extrabold text-white tracking-tight">Admin Console</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Secure access to AlphaByte management panel
+              </p>
+            </div>
+
+            <div className="bg-card/30 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-elegant">
+              {loginError && (
+                <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="w-1.5 h-1.5 rounded-full bg-destructive mt-1.5 shrink-0" />
+                  <div>{loginError}</div>
+                </div>
+              )}
+
+              <form className="space-y-6" onSubmit={handleLogin}>
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="email-address" className="block text-xs font-semibold uppercase text-muted-foreground mb-1.5">
+                      Email Address
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+                        <Mail size={18} />
+                      </div>
+                      <input
+                        id="email-address"
+                        name="email"
+                        type="email"
+                        required
+                        placeholder="Enter email address"
+                        value={loginEmail}
+                        onChange={(e) => setLoginEmail(e.target.value)}
+                        className="block w-full pl-11 pr-4 h-11 bg-secondary/50 rounded-xl border border-border text-sm text-white placeholder:text-muted-foreground/60 focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold/50 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="password" className="block text-xs font-semibold uppercase text-muted-foreground mb-1.5">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+                        <Lock size={18} />
+                      </div>
+                      <input
+                        id="password"
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        required
+                        placeholder="Enter password"
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        className="block w-full pl-11 pr-11 h-11 bg-secondary/50 rounded-xl border border-border text-sm text-white placeholder:text-muted-foreground/60 focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold/50 transition-all"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted-foreground hover:text-white transition-colors cursor-pointer"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoggingIn}
+                  className="w-full inline-flex items-center justify-center bg-gradient-gold hover:bg-gold-glow text-black font-semibold h-11 rounded-xl transition-all shadow-gold/10 hover:shadow-gold/20 active:scale-[0.99] disabled:opacity-50 select-none cursor-pointer"
+                >
+                  {isLoggingIn ? (
+                    <span className="flex items-center gap-2">
+                      <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+                      Authenticating...
+                    </span>
+                  ) : (
+                    "Verify & Log In"
+                  )}
+                </button>
+              </form>
+            </div>
+
+            {/* Sandbox Credentials Info Callout */}
+            <div className="bg-gold/5 border border-gold/15 rounded-2xl p-5 text-xs space-y-2.5 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+              <div className="flex items-center gap-2 text-gold font-bold uppercase tracking-wider">
+                <Award size={14} /> Sandbox Demo Credentials
+              </div>
+              <p className="text-muted-foreground leading-relaxed">
+                This project runs fully in the browser sandbox. Please use the default credentials below to authenticate:
+              </p>
+              <div className="grid grid-cols-2 gap-3 pt-1 font-mono text-white/90">
+                <div className="bg-secondary/40 border border-border p-2 rounded-lg">
+                  <div className="text-[10px] text-muted-foreground uppercase font-bold mb-0.5">Email Address</div>
+                  <span className="font-semibold text-gold truncate block">admin@alphabytesoftwares.in</span>
+                </div>
+                <div className="bg-secondary/40 border border-border p-2 rounded-lg">
+                  <div className="text-[10px] text-muted-foreground uppercase font-bold mb-0.5">Password</div>
+                  <span className="font-semibold text-gold">admin123</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <PageShell>
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
       <section className="bg-gradient-dark text-white py-12 border-b border-border">
         <div className="mx-auto max-w-[1320px] px-5 md:px-8 flex items-center justify-between">
           <div>
@@ -227,8 +412,16 @@ export function AdminPage() {
               Admin Control Panel
             </h1>
           </div>
-          <div className="text-xs bg-gold/10 text-gold px-3 py-1.5 rounded-full font-semibold border border-gold/25">
-            Client-Side Cache (Persistent)
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:inline-block text-xs bg-gold/10 text-gold px-3 py-1.5 rounded-full font-semibold border border-gold/25">
+              Client-Side Cache (Persistent)
+            </div>
+            <button 
+              onClick={handleLogout}
+              className="inline-flex items-center gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 px-4 h-9 rounded-lg text-xs font-bold transition-all cursor-pointer select-none"
+            >
+              <LogOut size={14} /> Log Out
+            </button>
           </div>
         </div>
       </section>
@@ -284,6 +477,13 @@ export function AdminPage() {
             {unreadMessagesCount > 0 && (
               <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald text-white animate-pulse`}>{unreadMessagesCount} new</span>
             )}
+          </button>
+          <div className="h-px bg-border my-2"></div>
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all text-red-500 hover:bg-red-500/10 cursor-pointer select-none"
+          >
+            <LogOut size={18} /> Log Out
           </button>
         </aside>
 
@@ -1233,6 +1433,6 @@ export function AdminPage() {
           </div>
         </div>
       )}
-    </PageShell>
+    </div>
   );
 }

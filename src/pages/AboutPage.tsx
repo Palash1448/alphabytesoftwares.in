@@ -1,10 +1,21 @@
+import { useState, useEffect } from "react";
 import { PageShell, PageHeader } from "@/components/page-shell";
 import { db } from "@/lib/db";
 
 export function AboutPage() {
-  const milestones = db.getMilestones();
-  const team = db.getTeam();
-  const stats = db.getStats();
+  const [milestones, setMilestones] = useState(() => db.getMilestones());
+  const [team, setTeam] = useState(() => db.getTeam());
+  const [stats, setStats] = useState(() => db.getStats());
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setMilestones(db.getMilestones());
+      setTeam(db.getTeam());
+      setStats(db.getStats());
+    };
+    window.addEventListener("db-updated", handleUpdate);
+    return () => window.removeEventListener("db-updated", handleUpdate);
+  }, []);
 
   const aboutStats = [
     { n: stats.projectsShipped, l: "Projects shipped" },

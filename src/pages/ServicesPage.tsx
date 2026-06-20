@@ -1,9 +1,16 @@
+import { useState, useEffect } from "react";
 import { PageShell, PageHeader } from "@/components/page-shell";
 import { db } from "@/lib/db";
 import * as Icons from "lucide-react";
 
 export function ServicesPage() {
-  const services = db.getServices();
+  const [services, setServices] = useState(() => db.getServices());
+
+  useEffect(() => {
+    const handleUpdate = () => setServices(db.getServices());
+    window.addEventListener("db-updated", handleUpdate);
+    return () => window.removeEventListener("db-updated", handleUpdate);
+  }, []);
 
   return (
     <PageShell>

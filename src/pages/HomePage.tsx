@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import * as Icons from "lucide-react";
 import { PageShell } from "@/components/page-shell";
@@ -11,9 +12,19 @@ const testimonials = [
 ];
 
 export function HomePage() {
-  const statsData = db.getStats();
-  const servicesList = db.getServices();
-  const productsList = db.getProducts().filter(p => p.isReadyToDeploy).slice(0, 4);
+  const [statsData, setStatsData] = useState(() => db.getStats());
+  const [servicesList, setServicesList] = useState(() => db.getServices());
+  const [productsList, setProductsList] = useState(() => db.getProducts().filter(p => p.isReadyToDeploy).slice(0, 4));
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setStatsData(db.getStats());
+      setServicesList(db.getServices());
+      setProductsList(db.getProducts().filter(p => p.isReadyToDeploy).slice(0, 4));
+    };
+    window.addEventListener("db-updated", handleUpdate);
+    return () => window.removeEventListener("db-updated", handleUpdate);
+  }, []);
 
   const homeStats = [
     { n: statsData.projectsShipped, l: "Projects Delivered" },

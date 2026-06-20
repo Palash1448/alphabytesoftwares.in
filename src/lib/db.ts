@@ -1,3 +1,18 @@
+import { initializeApp } from "firebase/app";
+import { 
+  getFirestore, 
+  collection, 
+  doc, 
+  getDoc, 
+  setDoc, 
+  deleteDoc, 
+  onSnapshot 
+} from "firebase/firestore";
+import { 
+  getAuth, 
+  createUserWithEmailAndPassword 
+} from "firebase/auth";
+
 // Types
 export interface Product {
   id: string;
@@ -161,7 +176,7 @@ function initKey<T>(key: string, defaultValue: T): T {
   }
 }
 
-// Initial seeding checks
+// Initial seeding checks for fallback
 initKey<Product[]>("ab_products", DEFAULT_PRODUCTS);
 initKey<Service[]>("ab_services", DEFAULT_SERVICES);
 initKey<AboutStats>("ab_stats", DEFAULT_STATS);
@@ -171,6 +186,119 @@ initKey<PortfolioItem[]>("ab_portfolio", DEFAULT_PORTFOLIO);
 initKey<BlogPost[]>("ab_blogs", DEFAULT_BLOGS);
 initKey<ContactSubmission[]>("ab_submissions", []);
 
+// Initialize Firebase configuration
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+};
+
+const app = initializeApp(firebaseConfig);
+export const firestore = getFirestore(app);
+export const auth = getAuth(app);
+
+// Check if Firestore database is already seeded, if not seed it.
+async function checkAndSeedDatabase() {
+  try {
+    const initRef = doc(firestore, "settings", "init");
+    const initSnap = await getDoc(initRef);
+    if (!initSnap.exists()) {
+      console.log("Initial seed key not found. Seeding default data to Cloud Firestore...");
+
+      // Seed products
+      for (const p of DEFAULT_PRODUCTS) {
+        await setDoc(doc(firestore, "products", p.id), p);
+      }
+      
+      // Seed services
+      for (const s of DEFAULT_SERVICES) {
+        await setDoc(doc(firestore, "services", s.id), s);
+      }
+      
+      // Seed stats
+      await setDoc(doc(firestore, "settings", "stats"), DEFAULT_STATS);
+      
+      // Seed milestones
+      for (const m of DEFAULT_MILESTONES) {
+        await setDoc(doc(firestore, "milestones", m.id), m);
+      }
+      
+      // Seed team members
+      for (const t of DEFAULT_TEAM) {
+        await setDoc(doc(firestore, "team", t.id), t);
+      }
+      
+      // Seed portfolio items
+      for (const pf of DEFAULT_PORTFOLIO) {
+        await setDoc(doc(firestore, "portfolio", pf.id), pf);
+      }
+      
+      // Seed blog posts
+      for (const b of DEFAULT_BLOGS) {
+        await setDoc(doc(firestore, "blogs", b.id), b);
+      }
+      
+      // Seed default admin in Firebase Auth
+      try {
+        await createUserWithEmailAndPassword(auth, "admin@alphabytesoftwares.in", "admin123");
+        console.log("Seeded default admin user to Firebase Authentication (admin@alphabytesoftwares.in)");
+      } catch (authErr: any) {
+        if (authErr.code !== "auth/email-already-in-use") {
+          console.error("Failed to seed admin account in Auth:", authErr);
+        }
+      }
+
+      await setDoc(initRef, { seeded: true });
+      console.log("Cloud Firestore seeding completed successfully.");
+    }
+  } catch (err) {
+    console.error("Firestore database seeding check failed:", err);
+  }
+}
+
+// Run check and seed in background
+checkAndSeedDatabase();
+
+// Sync collection Firestore -> localStorage
+function syncCollection(collectionName: string, localStorageKey: string) {
+  onSnapshot(collection(firestore, collectionName), (snapshot) => {
+    const list: any[] = [];
+    snapshot.forEach((docSnap) => {
+      list.push({ ...docSnap.data() });
+    });
+    localStorage.setItem(localStorageKey, JSON.stringify(list));
+    window.dispatchEvent(new Event("db-updated"));
+  }, (error) => {
+    console.error(`Firestore sync error on collection '${collectionName}':`, error);
+  });
+}
+
+// Sync stats settings document Firestore -> localStorage
+function syncStats() {
+  onSnapshot(doc(firestore, "settings", "stats"), (snap) => {
+    if (snap.exists()) {
+      localStorage.setItem("ab_stats", JSON.stringify(snap.data()));
+      window.dispatchEvent(new Event("db-updated"));
+    }
+  }, (error) => {
+    console.error("Firestore sync error on document 'settings/stats':", error);
+  });
+}
+
+// Initialize listeners
+syncCollection("products", "ab_products");
+syncCollection("services", "ab_services");
+syncCollection("milestones", "ab_milestones");
+syncCollection("team", "ab_team");
+syncCollection("portfolio", "ab_portfolio");
+syncCollection("blogs", "ab_blogs");
+syncCollection("submissions", "ab_submissions");
+syncStats();
+
 // Database Methods
 export const db = {
   // PRODUCTS
@@ -178,6 +306,7 @@ export const db = {
     return JSON.parse(localStorage.getItem("ab_products") || "[]");
   },
   saveProduct(p: Product): void {
+    // Optimistic local update
     const list = this.getProducts();
     const index = list.findIndex((x) => x.id === p.id);
     if (index > -1) {
@@ -186,10 +315,19 @@ export const db = {
       list.push(p);
     }
     localStorage.setItem("ab_products", JSON.stringify(list));
+    window.dispatchEvent(new Event("db-updated"));
+
+    // Cloud Firestore Async Update
+    setDoc(doc(firestore, "products", p.id), p).catch((e) => console.error("Firestore saveProduct failed:", e));
   },
   deleteProduct(id: string): void {
+    // Optimistic local update
     const list = this.getProducts().filter((x) => x.id !== id);
     localStorage.setItem("ab_products", JSON.stringify(list));
+    window.dispatchEvent(new Event("db-updated"));
+
+    // Cloud Firestore Async Update
+    deleteDoc(doc(firestore, "products", id)).catch((e) => console.error("Firestore deleteProduct failed:", e));
   },
 
   // SERVICES
@@ -197,6 +335,7 @@ export const db = {
     return JSON.parse(localStorage.getItem("ab_services") || "[]");
   },
   saveService(s: Service): void {
+    // Optimistic local update
     const list = this.getServices();
     const index = list.findIndex((x) => x.id === s.id);
     if (index > -1) {
@@ -205,10 +344,19 @@ export const db = {
       list.push(s);
     }
     localStorage.setItem("ab_services", JSON.stringify(list));
+    window.dispatchEvent(new Event("db-updated"));
+
+    // Cloud Firestore Async Update
+    setDoc(doc(firestore, "services", s.id), s).catch((e) => console.error("Firestore saveService failed:", e));
   },
   deleteService(id: string): void {
+    // Optimistic local update
     const list = this.getServices().filter((x) => x.id !== id);
     localStorage.setItem("ab_services", JSON.stringify(list));
+    window.dispatchEvent(new Event("db-updated"));
+
+    // Cloud Firestore Async Update
+    deleteDoc(doc(firestore, "services", id)).catch((e) => console.error("Firestore deleteService failed:", e));
   },
 
   // STATS
@@ -216,7 +364,12 @@ export const db = {
     return JSON.parse(localStorage.getItem("ab_stats") || JSON.stringify(DEFAULT_STATS));
   },
   saveStats(stats: AboutStats): void {
+    // Optimistic local update
     localStorage.setItem("ab_stats", JSON.stringify(stats));
+    window.dispatchEvent(new Event("db-updated"));
+
+    // Cloud Firestore Async Update
+    setDoc(doc(firestore, "settings", "stats"), stats).catch((e) => console.error("Firestore saveStats failed:", e));
   },
 
   // MILESTONES
@@ -224,6 +377,7 @@ export const db = {
     return JSON.parse(localStorage.getItem("ab_milestones") || "[]");
   },
   saveMilestone(m: Milestone): void {
+    // Optimistic local update
     const list = this.getMilestones();
     const index = list.findIndex((x) => x.id === m.id);
     if (index > -1) {
@@ -232,10 +386,19 @@ export const db = {
       list.push(m);
     }
     localStorage.setItem("ab_milestones", JSON.stringify(list));
+    window.dispatchEvent(new Event("db-updated"));
+
+    // Cloud Firestore Async Update
+    setDoc(doc(firestore, "milestones", m.id), m).catch((e) => console.error("Firestore saveMilestone failed:", e));
   },
   deleteMilestone(id: string): void {
+    // Optimistic local update
     const list = this.getMilestones().filter((x) => x.id !== id);
     localStorage.setItem("ab_milestones", JSON.stringify(list));
+    window.dispatchEvent(new Event("db-updated"));
+
+    // Cloud Firestore Async Update
+    deleteDoc(doc(firestore, "milestones", id)).catch((e) => console.error("Firestore deleteMilestone failed:", e));
   },
 
   // TEAM
@@ -243,6 +406,7 @@ export const db = {
     return JSON.parse(localStorage.getItem("ab_team") || "[]");
   },
   saveTeamMember(t: TeamMember): void {
+    // Optimistic local update
     const list = this.getTeam();
     const index = list.findIndex((x) => x.id === t.id);
     if (index > -1) {
@@ -251,10 +415,19 @@ export const db = {
       list.push(t);
     }
     localStorage.setItem("ab_team", JSON.stringify(list));
+    window.dispatchEvent(new Event("db-updated"));
+
+    // Cloud Firestore Async Update
+    setDoc(doc(firestore, "team", t.id), t).catch((e) => console.error("Firestore saveTeamMember failed:", e));
   },
   deleteTeamMember(id: string): void {
+    // Optimistic local update
     const list = this.getTeam().filter((x) => x.id !== id);
     localStorage.setItem("ab_team", JSON.stringify(list));
+    window.dispatchEvent(new Event("db-updated"));
+
+    // Cloud Firestore Async Update
+    deleteDoc(doc(firestore, "team", id)).catch((e) => console.error("Firestore deleteTeamMember failed:", e));
   },
 
   // PORTFOLIO
@@ -262,6 +435,7 @@ export const db = {
     return JSON.parse(localStorage.getItem("ab_portfolio") || "[]");
   },
   savePortfolioItem(p: PortfolioItem): void {
+    // Optimistic local update
     const list = this.getPortfolio();
     const index = list.findIndex((x) => x.id === p.id);
     if (index > -1) {
@@ -270,10 +444,19 @@ export const db = {
       list.push(p);
     }
     localStorage.setItem("ab_portfolio", JSON.stringify(list));
+    window.dispatchEvent(new Event("db-updated"));
+
+    // Cloud Firestore Async Update
+    setDoc(doc(firestore, "portfolio", p.id), p).catch((e) => console.error("Firestore savePortfolioItem failed:", e));
   },
   deletePortfolioItem(id: string): void {
+    // Optimistic local update
     const list = this.getPortfolio().filter((x) => x.id !== id);
     localStorage.setItem("ab_portfolio", JSON.stringify(list));
+    window.dispatchEvent(new Event("db-updated"));
+
+    // Cloud Firestore Async Update
+    deleteDoc(doc(firestore, "portfolio", id)).catch((e) => console.error("Firestore deletePortfolioItem failed:", e));
   },
 
   // BLOGS
@@ -281,6 +464,7 @@ export const db = {
     return JSON.parse(localStorage.getItem("ab_blogs") || "[]");
   },
   saveBlogPost(b: BlogPost): void {
+    // Optimistic local update
     const list = this.getBlogs();
     const index = list.findIndex((x) => x.id === b.id);
     if (index > -1) {
@@ -289,10 +473,19 @@ export const db = {
       list.push(b);
     }
     localStorage.setItem("ab_blogs", JSON.stringify(list));
+    window.dispatchEvent(new Event("db-updated"));
+
+    // Cloud Firestore Async Update
+    setDoc(doc(firestore, "blogs", b.id), b).catch((e) => console.error("Firestore saveBlogPost failed:", e));
   },
   deleteBlogPost(id: string): void {
+    // Optimistic local update
     const list = this.getBlogs().filter((x) => x.id !== id);
     localStorage.setItem("ab_blogs", JSON.stringify(list));
+    window.dispatchEvent(new Event("db-updated"));
+
+    // Cloud Firestore Async Update
+    deleteDoc(doc(firestore, "blogs", id)).catch((e) => console.error("Firestore deleteBlogPost failed:", e));
   },
 
   // SUBMISSIONS
@@ -300,20 +493,35 @@ export const db = {
     return JSON.parse(localStorage.getItem("ab_submissions") || "[]");
   },
   saveSubmission(s: ContactSubmission): void {
+    // Optimistic local update
     const list = this.getSubmissions();
     list.push(s);
     localStorage.setItem("ab_submissions", JSON.stringify(list));
+    window.dispatchEvent(new Event("db-updated"));
+
+    // Cloud Firestore Async Update
+    setDoc(doc(firestore, "submissions", s.id), s).catch((e) => console.error("Firestore saveSubmission failed:", e));
   },
   markSubmissionRead(id: string, isRead = true): void {
+    // Optimistic local update
     const list = this.getSubmissions();
     const index = list.findIndex((x) => x.id === id);
     if (index > -1) {
       list[index].isRead = isRead;
       localStorage.setItem("ab_submissions", JSON.stringify(list));
+      window.dispatchEvent(new Event("db-updated"));
+
+      // Cloud Firestore Async Update (merge fields)
+      setDoc(doc(firestore, "submissions", id), { isRead }, { merge: true }).catch((e) => console.error("Firestore markSubmissionRead failed:", e));
     }
   },
   deleteSubmission(id: string): void {
+    // Optimistic local update
     const list = this.getSubmissions().filter((x) => x.id !== id);
     localStorage.setItem("ab_submissions", JSON.stringify(list));
+    window.dispatchEvent(new Event("db-updated"));
+
+    // Cloud Firestore Async Update
+    deleteDoc(doc(firestore, "submissions", id)).catch((e) => console.error("Firestore deleteSubmission failed:", e));
   }
 };

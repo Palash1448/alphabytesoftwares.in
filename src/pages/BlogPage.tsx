@@ -1,11 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PageShell, PageHeader } from "@/components/page-shell";
 import { db, BlogPost } from "@/lib/db";
 import { Calendar, User, Clock, ArrowRight, X } from "lucide-react";
 
 export function BlogPage() {
-  const blogs = db.getBlogs();
+  const [blogs, setBlogs] = useState(() => db.getBlogs());
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
+
+  useEffect(() => {
+    const handleUpdate = () => setBlogs(db.getBlogs());
+    window.addEventListener("db-updated", handleUpdate);
+    return () => window.removeEventListener("db-updated", handleUpdate);
+  }, []);
 
   return (
     <PageShell>

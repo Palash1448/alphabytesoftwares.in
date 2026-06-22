@@ -329,14 +329,14 @@ export function AdminPage() {
 
   const handleSlideSave = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!slideForm.img || !slideForm.headline || !slideForm.sub || !slideForm.cta) return;
+    if (!slideForm.img) return;
     const newSlide: Slide = {
       id: editId || `sld_${Date.now()}`,
       img: slideForm.img,
-      headline: slideForm.headline,
-      sub: slideForm.sub,
-      cta: slideForm.cta,
-      href: slideForm.href || "#",
+      headline: slideForm.headline || "",
+      sub: slideForm.sub || "",
+      cta: slideForm.cta || "",
+      href: slideForm.href || "",
     };
     db.saveSlide(newSlide);
     setIsModalOpen(false);
@@ -1776,10 +1776,9 @@ export function AdminPage() {
                     helperText="Upload a high-quality widescreen image (1920x1080) for the homepage slider."
                   />
                   <div>
-                    <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">Headline</label>
+                    <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">Headline (Optional)</label>
                     <input 
                       type="text" 
-                      required
                       placeholder="e.g. Build Smarter. Scale Faster."
                       value={slideForm.headline || ""} 
                       onChange={(e) => setSlideForm({...slideForm, headline: e.target.value})}
@@ -1787,10 +1786,9 @@ export function AdminPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">Subtitle</label>
+                    <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">Subtitle (Optional)</label>
                     <input 
                       type="text" 
-                      required
                       placeholder="e.g. Software, apps and ERP engineered to grow with your ambition."
                       value={slideForm.sub || ""} 
                       onChange={(e) => setSlideForm({...slideForm, sub: e.target.value})}
@@ -1799,10 +1797,9 @@ export function AdminPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">CTA Button Text</label>
+                      <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">CTA Button Text (Optional)</label>
                       <input 
                         type="text" 
-                        required
                         placeholder="e.g. Explore Products"
                         value={slideForm.cta || ""} 
                         onChange={(e) => setSlideForm({...slideForm, cta: e.target.value})}
@@ -1810,10 +1807,9 @@ export function AdminPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">Target URL (Href)</label>
+                      <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">Target URL Href (Optional)</label>
                       <input 
                         type="text" 
-                        required
                         placeholder="e.g. /products or /contact"
                         value={slideForm.href || ""} 
                         onChange={(e) => setSlideForm({...slideForm, href: e.target.value})}

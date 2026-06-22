@@ -92,10 +92,10 @@ export interface ContactSubmission {
 export interface Slide {
   id: string;
   img: string; // Image path or URL
-  headline: string;
-  sub: string;
-  cta: string;
-  href: string;
+  headline?: string;
+  sub?: string;
+  cta?: string;
+  href?: string;
 }
 
 // Default Data Seeds

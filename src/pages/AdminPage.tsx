@@ -26,6 +26,103 @@ import {
 } from "lucide-react";
 import { db, Product, Service, Milestone, TeamMember, AboutStats, PortfolioItem, BlogPost, ContactSubmission, auth, Slide } from "@/lib/db";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
+import { uploadImage } from "@/lib/upload";
+
+interface ImageUploaderProps {
+  label: string;
+  value: string;
+  onChange: (url: string) => void;
+  helperText?: string;
+}
+
+function ImageUploader({ label, value, onChange, helperText }: ImageUploaderProps) {
+  const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("Please select an image file.");
+      return;
+    }
+
+    setIsUploading(true);
+    setError("");
+
+    try {
+      const url = await uploadImage(file);
+      onChange(url);
+    } catch (err: any) {
+      console.error(err);
+      setError("Upload failed. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <label className="block text-xs font-semibold uppercase text-muted-foreground">{label}</label>
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+        {/* Upload Button */}
+        <label className="relative flex items-center justify-center h-10 px-4 rounded-lg border border-dashed border-border bg-secondary hover:bg-secondary/70 text-sm font-medium text-foreground cursor-pointer transition-all shrink-0 hover:border-gold">
+          {isUploading ? (
+            <span className="flex items-center gap-2">
+              <span className="w-3.5 h-3.5 border-2 border-gold border-t-transparent rounded-full animate-spin"></span>
+              Uploading...
+            </span>
+          ) : (
+            <>
+              <span>Choose Image</span>
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={handleFileChange} 
+                className="sr-only" 
+                disabled={isUploading}
+              />
+            </>
+          )}
+        </label>
+
+        {/* URL Text input fallback / view */}
+        <input 
+          type="text" 
+          placeholder="Or paste image URL here..."
+          value={value} 
+          onChange={(e) => onChange(e.target.value)}
+          className="flex-1 w-full h-10 px-3 bg-secondary rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-gold"
+        />
+
+        {/* Image Preview */}
+        {value && (
+          <div className="relative w-16 h-10 rounded border border-border overflow-hidden bg-black/20 shrink-0 flex items-center justify-center group">
+            <img 
+              src={value} 
+              alt="Preview" 
+              className="h-full w-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=150&auto=format&fit=crop';
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => onChange("")}
+              className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-red-500 transition-opacity cursor-pointer border-none p-0"
+              title="Remove image"
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
+        )}
+      </div>
+      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      {helperText && !error && <p className="text-[10px] text-muted-foreground">{helperText}</p>}
+    </div>
+  );
+}
 
 export function AdminPage() {
   // Authentication State
@@ -103,11 +200,11 @@ export function AdminPage() {
 
   // Form Fields State
   const [productForm, setProductForm] = useState<Partial<Product>>({ name: "", tag: "", price: "", oldPrice: "", rating: 5.0, isReadyToDeploy: true, image: "", images: [] });
-  const [serviceForm, setServiceForm] = useState<Partial<Service>>({ iconName: "Code2", title: "", desc: "" });
+  const [serviceForm, setServiceForm] = useState<Partial<Service>>({ iconName: "Code2", title: "", desc: "", image: "" });
   const [milestoneForm, setMilestoneForm] = useState<Partial<Milestone>>({ y: "", t: "", d: "" });
-  const [teamForm, setTeamForm] = useState<Partial<TeamMember>>({ n: "", r: "" });
-  const [portfolioForm, setPortfolioForm] = useState<Partial<PortfolioItem>>({ title: "", category: "Web Development", client: "", year: "", desc: "", link: "#" });
-  const [blogForm, setBlogForm] = useState<Partial<BlogPost>>({ title: "", summary: "", content: "", author: "", readTime: "5 min read" });
+  const [teamForm, setTeamForm] = useState<Partial<TeamMember>>({ n: "", r: "", image: "" });
+  const [portfolioForm, setPortfolioForm] = useState<Partial<PortfolioItem>>({ title: "", category: "Web Development", client: "", year: "", desc: "", link: "#", image: "" });
+  const [blogForm, setBlogForm] = useState<Partial<BlogPost>>({ title: "", summary: "", content: "", author: "", readTime: "5 min read", image: "" });
   const [slideForm, setSlideForm] = useState<Partial<Slide>>({ img: "/hero-1.jpg", headline: "", sub: "", cta: "", href: "" });
 
   // Load Data
@@ -159,6 +256,7 @@ export function AdminPage() {
       iconName: serviceForm.iconName || "Code2",
       title: serviceForm.title,
       desc: serviceForm.desc,
+      image: serviceForm.image || "",
     };
     db.saveService(newService);
     setIsModalOpen(false);
@@ -186,6 +284,7 @@ export function AdminPage() {
       id: editId || `t_${Date.now()}`,
       n: teamForm.n,
       r: teamForm.r,
+      image: teamForm.image || "",
     };
     db.saveTeamMember(newTeam);
     setIsModalOpen(false);
@@ -203,6 +302,7 @@ export function AdminPage() {
       year: portfolioForm.year || new Date().getFullYear().toString(),
       desc: portfolioForm.desc,
       link: portfolioForm.link || "#",
+      image: portfolioForm.image || "",
     };
     db.savePortfolioItem(newItem);
     setIsModalOpen(false);
@@ -220,6 +320,7 @@ export function AdminPage() {
       date: editId ? (blogs.find(x => x.id === editId)?.date || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })) : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
       author: blogForm.author,
       readTime: blogForm.readTime || "5 min read",
+      image: blogForm.image || "",
     };
     db.saveBlogPost(newBlog);
     setIsModalOpen(false);
@@ -257,11 +358,11 @@ export function AdminPage() {
     setNewProductImageUrl("");
     // Reset forms
     if (type === "product") setProductForm({ name: "", tag: "", price: "", oldPrice: "", rating: 5.0, isReadyToDeploy: true, image: "", images: [] });
-    if (type === "service") setServiceForm({ iconName: "Code2", title: "", desc: "" });
+    if (type === "service") setServiceForm({ iconName: "Code2", title: "", desc: "", image: "" });
     if (type === "milestone") setMilestoneForm({ y: "", t: "", d: "" });
-    if (type === "team") setTeamForm({ n: "", r: "" });
-    if (type === "portfolio") setPortfolioForm({ title: "", category: "Web Development", client: "", year: new Date().getFullYear().toString(), desc: "", link: "#" });
-    if (type === "blog") setBlogForm({ title: "", summary: "", content: "", author: "", readTime: "5 min read" });
+    if (type === "team") setTeamForm({ n: "", r: "", image: "" });
+    if (type === "portfolio") setPortfolioForm({ title: "", category: "Web Development", client: "", year: new Date().getFullYear().toString(), desc: "", link: "#", image: "" });
+    if (type === "blog") setBlogForm({ title: "", summary: "", content: "", author: "", readTime: "5 min read", image: "" });
     if (type === "slide") setSlideForm({ img: "/hero-1.jpg", headline: "", sub: "", cta: "", href: "" });
   };
 
@@ -278,11 +379,11 @@ export function AdminPage() {
         images: item.images || []
       });
     }
-    if (type === "service") setServiceForm(item);
+    if (type === "service") setServiceForm({ ...item, image: item.image || "" });
     if (type === "milestone") setMilestoneForm(item);
-    if (type === "team") setTeamForm(item);
-    if (type === "portfolio") setPortfolioForm(item);
-    if (type === "blog") setBlogForm(item);
+    if (type === "team") setTeamForm({ ...item, image: item.image || "" });
+    if (type === "portfolio") setPortfolioForm({ ...item, image: item.image || "" });
+    if (type === "blog") setBlogForm({ ...item, image: item.image || "" });
     if (type === "slide") setSlideForm(item);
   };
 
@@ -1236,30 +1337,12 @@ export function AdminPage() {
                     </div>
                   </div>
                   
-                  <div>
-                    <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">Primary Product Image URL</label>
-                    <div className="flex gap-3 mb-2">
-                      <input 
-                        type="text" 
-                        placeholder="e.g. https://images.unsplash.com/... or public path"
-                        value={productForm.image || ""} 
-                        onChange={(e) => setProductForm({...productForm, image: e.target.value})}
-                        className="flex-1 h-10 px-3 bg-secondary rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-gold"
-                      />
-                      {productForm.image && (
-                        <div className="w-12 h-10 rounded border border-border overflow-hidden bg-black/20 shrink-0 flex items-center justify-center">
-                          <img 
-                            src={productForm.image} 
-                            alt="Primary Preview" 
-                            className="h-full w-full object-cover"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=150&auto=format&fit=crop';
-                            }}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <ImageUploader 
+                    label="Primary Product Image"
+                    value={productForm.image || ""}
+                    onChange={(url) => setProductForm({...productForm, image: url})}
+                    helperText="Upload a main product showcase photo."
+                  />
 
                   <div>
                     <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1.5">Product Gallery Images (Multiple)</label>
@@ -1296,8 +1379,8 @@ export function AdminPage() {
                       </div>
                     )}
 
-                    {/* Form to add a new image url to the list */}
-                    <div className="flex gap-2">
+                    {/* Form to add a new image url to the list or upload one */}
+                    <div className="flex gap-2 items-center">
                       <input 
                         type="text" 
                         placeholder="Paste image URL here..."
@@ -1318,8 +1401,31 @@ export function AdminPage() {
                         }}
                         className="bg-gold hover:bg-gold-glow text-black font-semibold text-xs px-3 h-9 rounded-lg shrink-0 cursor-pointer"
                       >
-                        Add Image
+                        Add
                       </button>
+                      <label className="flex items-center justify-center px-3 h-9 bg-secondary border border-border rounded-lg text-xs font-semibold cursor-pointer hover:border-gold transition-colors shrink-0 text-white select-none">
+                        <span>Upload</span>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          className="sr-only" 
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            try {
+                              const url = await uploadImage(file);
+                              const currentImages = productForm.images || [];
+                              setProductForm({
+                                ...productForm,
+                                images: [...currentImages, url]
+                              });
+                            } catch (err) {
+                              console.error(err);
+                              alert("Failed to upload gallery image.");
+                            }
+                          }}
+                        />
+                      </label>
                     </div>
                   </div>
                 </div>
@@ -1377,6 +1483,12 @@ export function AdminPage() {
                       className="w-full p-3 bg-secondary rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-gold resize-none"
                     />
                   </div>
+                  <ImageUploader 
+                    label="Service Photo (Optional)"
+                    value={serviceForm.image || ""}
+                    onChange={(url) => setServiceForm({...serviceForm, image: url})}
+                    helperText="Upload an image to show instead of the Lucide icon."
+                  />
                 </div>
                 <div className="p-4 border-t border-border bg-secondary flex justify-end gap-3">
                   <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 h-10 text-xs font-semibold border border-border hover:bg-secondary rounded-md transition-colors">Cancel</button>
@@ -1464,6 +1576,12 @@ export function AdminPage() {
                       className="w-full h-10 px-3 bg-secondary rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-gold"
                     />
                   </div>
+                  <ImageUploader 
+                    label="Profile Photo (Optional)"
+                    value={teamForm.image || ""}
+                    onChange={(url) => setTeamForm({...teamForm, image: url})}
+                    helperText="Upload a professional avatar picture."
+                  />
                 </div>
                 <div className="p-4 border-t border-border bg-secondary flex justify-end gap-3">
                   <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 h-10 text-xs font-semibold border border-border hover:bg-secondary rounded-md transition-colors">Cancel</button>
@@ -1551,6 +1669,12 @@ export function AdminPage() {
                       className="w-full p-3 bg-secondary rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-gold resize-none"
                     />
                   </div>
+                  <ImageUploader 
+                    label="Project Banner Image (Optional)"
+                    value={portfolioForm.image || ""}
+                    onChange={(url) => setPortfolioForm({...portfolioForm, image: url})}
+                    helperText="Upload a background image for this portfolio item card."
+                  />
                 </div>
                 <div className="p-4 border-t border-border bg-secondary flex justify-end gap-3">
                   <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 h-10 text-xs font-semibold border border-border hover:bg-secondary rounded-md transition-colors">Cancel</button>
@@ -1601,6 +1725,12 @@ export function AdminPage() {
                       />
                     </div>
                   </div>
+                  <ImageUploader 
+                    label="Blog Banner Image (Optional)"
+                    value={blogForm.image || ""}
+                    onChange={(url) => setBlogForm({...blogForm, image: url})}
+                    helperText="Upload a banner image for this post."
+                  />
                   <div>
                     <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">Summary (Short Excerpt)</label>
                     <input 
@@ -1639,43 +1769,12 @@ export function AdminPage() {
                   <button type="button" onClick={() => setIsModalOpen(false)} className="text-muted-foreground hover:text-foreground"><X size={20} /></button>
                 </div>
                 <div className="p-6 space-y-4">
-                  <div>
-                    <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">Image URL / Select Template Image</label>
-                    <div className="grid grid-cols-2 gap-2 mb-2">
-                      <select 
-                        value={slideForm.img || "/hero-1.jpg"}
-                        onChange={(e) => setSlideForm({...slideForm, img: e.target.value})}
-                        className="h-10 px-3 bg-secondary rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-gold"
-                      >
-                        <option value="/hero-1.jpg">Template Image 1 (/hero-1.jpg)</option>
-                        <option value="/hero-2.jpg">Template Image 2 (/hero-2.jpg)</option>
-                        <option value="/hero-3.jpg">Template Image 3 (/hero-3.jpg)</option>
-                        <option value="/hero-4.jpg">Template Image 4 (/hero-4.jpg)</option>
-                        <option value="custom">-- Use Custom URL --</option>
-                      </select>
-                      {slideForm.img && (
-                        <div className="h-10 rounded border border-border overflow-hidden bg-black/20 flex items-center justify-center">
-                          <img 
-                            src={slideForm.img === "custom" ? "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=150&auto=format&fit=crop" : slideForm.img} 
-                            alt="Preview" 
-                            className="h-full w-full object-cover"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=150&auto=format&fit=crop';
-                            }}
-                          />
-                        </div>
-                      )}
-                    </div>
-                    {/* Input field for custom image URL if "custom" or any custom text is desired */}
-                    <input 
-                      type="text" 
-                      required
-                      placeholder="e.g. /hero-1.jpg or custom image URL"
-                      value={slideForm.img === "custom" ? "" : slideForm.img || ""} 
-                      onChange={(e) => setSlideForm({...slideForm, img: e.target.value})}
-                      className="w-full h-10 px-3 bg-secondary rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-gold"
-                    />
-                  </div>
+                  <ImageUploader 
+                    label="Slide Image"
+                    value={slideForm.img || ""}
+                    onChange={(url) => setSlideForm({...slideForm, img: url})}
+                    helperText="Upload a high-quality widescreen image (1920x1080) for the homepage slider."
+                  />
                   <div>
                     <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">Headline</label>
                     <input 

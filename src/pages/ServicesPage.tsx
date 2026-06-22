@@ -29,9 +29,15 @@ export function ServicesPage() {
               const IconComponent = (Icons as any)[s.iconName] || Icons.HelpCircle;
               return (
                 <div key={s.id} className="group p-8 rounded-xl bg-card border border-border hover:border-gold hover:shadow-elegant transition-all">
-                  <div className="w-12 h-12 rounded-lg bg-black text-gold grid place-items-center mb-6 group-hover:bg-gold group-hover:text-black transition-colors">
-                    <IconComponent size={24} strokeWidth={2} />
-                  </div>
+                  {s.image ? (
+                    <div className="w-12 h-12 rounded-lg overflow-hidden mb-6 border border-border bg-black/10">
+                      <img src={s.image} alt={s.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" />
+                    </div>
+                  ) : (
+                    <div className="w-12 h-12 rounded-lg bg-black text-gold grid place-items-center mb-6 group-hover:bg-gold group-hover:text-black transition-colors">
+                      <IconComponent size={24} strokeWidth={2} />
+                    </div>
+                  )}
                   <h3 className="font-semibold text-xl mb-3">{s.title}</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-4">{s.desc}</p>
                 </div>

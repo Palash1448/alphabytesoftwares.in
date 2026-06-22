@@ -61,12 +61,18 @@ export function HomePage() {
               const IconComponent = (Icons as any)[s.iconName] || Icons.HelpCircle;
               return (
                 <div key={s.id} className="group p-6 rounded-xl bg-card border border-border hover:border-gold hover:shadow-elegant transition-all">
-                  <div className="w-12 h-12 rounded-lg bg-black text-gold grid place-items-center mb-5 group-hover:bg-gold group-hover:text-black transition-colors">
-                    <IconComponent size={22} strokeWidth={2} />
-                  </div>
+                  {s.image ? (
+                    <div className="w-12 h-12 rounded-lg overflow-hidden mb-5 border border-border bg-black/10">
+                      <img src={s.image} alt={s.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" />
+                    </div>
+                  ) : (
+                    <div className="w-12 h-12 rounded-lg bg-black text-gold grid place-items-center mb-5 group-hover:bg-gold group-hover:text-black transition-colors">
+                      <IconComponent size={22} strokeWidth={2} />
+                    </div>
+                  )}
                   <h3 className="font-semibold text-lg mb-2">{s.title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed mb-4">{s.desc}</p>
-                  <Link to="/services" className="inline-flex items-center gap-1 text-sm font-semibold text-black hover:text-gold">
+                  <Link to="/services" className="inline-flex items-center gap-1 text-sm font-semibold text-black hover:text-gold dark:text-white dark:hover:text-gold">
                     Learn more <Icons.ArrowRight size={14} />
                   </Link>
                 </div>
@@ -90,10 +96,16 @@ export function HomePage() {
           </div>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {productsList.map((p) => (
-              <article key={p.id} className="rounded-xl bg-card border border-border overflow-hidden flex flex-col hover:shadow-elegant transition-shadow">
-                <div className="aspect-[4/3] bg-gradient-dark relative grid place-items-center">
-                  <div className="absolute inset-0 opacity-30 bg-gradient-gold"/>
-                  <span className="relative font-display font-bold text-3xl text-gold">{p.name.split(" ")[0]}</span>
+              <article key={p.id} className="rounded-xl bg-card border border-border overflow-hidden flex flex-col hover:shadow-elegant transition-shadow group">
+                <div className="aspect-[4/3] bg-gradient-dark relative overflow-hidden flex items-center justify-center bg-black/10">
+                  {p.image ? (
+                    <img src={p.image} alt={p.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  ) : (
+                    <>
+                      <div className="absolute inset-0 opacity-30 bg-gradient-gold"/>
+                      <span className="relative font-display font-bold text-3xl text-gold">{p.name.split(" ")[0]}</span>
+                    </>
+                  )}
                 </div>
                 <div className="p-5 flex flex-col flex-1">
                   <h3 className="font-semibold">{p.name}</h3>

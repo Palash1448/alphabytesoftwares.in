@@ -12,6 +12,7 @@ import {
   getAuth, 
   createUserWithEmailAndPassword 
 } from "firebase/auth";
+import { getStorage } from "firebase/storage";
 
 // Types
 export interface Product {
@@ -32,6 +33,7 @@ export interface Service {
   iconName: string; // Lucide icon component name
   title: string;
   desc: string;
+  image?: string;
 }
 
 export interface Milestone {
@@ -45,6 +47,7 @@ export interface TeamMember {
   id: string;
   n: string; // name
   r: string; // role
+  image?: string;
 }
 
 export interface AboutStats {
@@ -62,6 +65,7 @@ export interface PortfolioItem {
   year: string;
   desc: string;
   link?: string;
+  image?: string;
 }
 
 export interface BlogPost {
@@ -72,6 +76,7 @@ export interface BlogPost {
   date: string;
   author: string;
   readTime: string;
+  image?: string;
 }
 
 export interface ContactSubmission {
@@ -284,6 +289,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const firestore = getFirestore(app);
 export const auth = getAuth(app);
+export const storage = getStorage(app);
 
 // Check if Firestore database is already seeded, if not seed it.
 async function checkAndSeedDatabase() {

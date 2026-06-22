@@ -32,10 +32,19 @@ export function BlogPage() {
                 className="group flex flex-col rounded-xl bg-card border border-border overflow-hidden hover:shadow-elegant transition-shadow cursor-pointer"
                 onClick={() => setSelectedPost(b)}
               >
-                <div className="aspect-[16/10] bg-gradient-dark relative p-6 flex flex-col justify-between">
-                  <div className="absolute inset-0 opacity-20 bg-gradient-gold" />
-                  <span className="relative text-xs text-gold font-semibold uppercase tracking-widest">{b.readTime}</span>
-                  <h3 className="relative text-xl font-bold text-white leading-snug group-hover:text-gold transition-colors">{b.title}</h3>
+                <div className="aspect-[16/10] bg-gradient-dark relative p-6 flex flex-col justify-between overflow-hidden">
+                  {b.image ? (
+                    <img 
+                      src={b.image} 
+                      alt={b.title} 
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                    />
+                  ) : (
+                    <div className="absolute inset-0 opacity-20 bg-gradient-gold" />
+                  )}
+                  <div className="absolute inset-0 bg-black/60 group-hover:bg-black/55 transition-colors" />
+                  <span className="relative z-10 text-xs text-gold font-semibold uppercase tracking-widest">{b.readTime}</span>
+                  <h3 className="relative z-10 text-xl font-bold text-white leading-snug group-hover:text-gold transition-colors">{b.title}</h3>
                 </div>
                 <div className="p-6 flex-1 flex flex-col justify-between">
                   <p className="text-muted-foreground text-sm leading-relaxed mb-6">{b.summary}</p>
@@ -71,6 +80,11 @@ export function BlogPage() {
                 <X size={20} />
               </button>
             </div>
+            {selectedPost.image && (
+              <div className="aspect-[21/9] w-full overflow-hidden border-b border-border bg-black/10">
+                <img src={selectedPost.image} alt={selectedPost.title} className="w-full h-full object-cover" />
+              </div>
+            )}
             <div className="p-6 space-y-6">
               <div className="flex items-center gap-4 text-xs text-muted-foreground pb-4 border-b border-border">
                 <span className="flex items-center gap-1.5"><User size={14} /> By {selectedPost.author}</span>

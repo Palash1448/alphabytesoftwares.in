@@ -77,7 +77,13 @@ export function AboutPage() {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {team.map((m) => (
               <div key={m.id} className="rounded-xl bg-card border border-border p-6 text-center">
-                <div className="w-24 h-24 mx-auto rounded-full bg-gradient-dark grid place-items-center text-gold font-display font-bold text-2xl mb-4">{m.n.split(" ").map(p=>p[0]).join("")}</div>
+                {m.image ? (
+                  <div className="w-24 h-24 mx-auto rounded-full overflow-hidden mb-4 border-2 border-gold/35 shadow-md bg-black/10">
+                    <img src={m.image} alt={m.n} className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-24 h-24 mx-auto rounded-full bg-gradient-dark grid place-items-center text-gold font-display font-bold text-2xl mb-4">{m.n.split(" ").map(p=>p[0]).join("")}</div>
+                )}
                 <div className="font-semibold">{m.n}</div>
                 <div className="text-sm text-muted-foreground">{m.r}</div>
               </div>

@@ -47,8 +47,17 @@ export function PortfolioPage() {
           <div className="grid gap-8 md:grid-cols-2">
             {filteredPortfolio.map((p) => (
               <article key={p.id} className="group rounded-2xl bg-card border border-border overflow-hidden flex flex-col hover:border-gold hover:shadow-elegant transition-all">
-                <div className="aspect-[16/9] bg-gradient-dark relative grid place-items-center p-8">
-                  <div className="absolute inset-0 opacity-15 bg-gradient-gold" />
+                <div className="aspect-[16/9] bg-gradient-dark relative grid place-items-center p-8 overflow-hidden">
+                  {p.image ? (
+                    <img 
+                      src={p.image} 
+                      alt={p.title} 
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                    />
+                  ) : (
+                    <div className="absolute inset-0 opacity-15 bg-gradient-gold" />
+                  )}
+                  <div className="absolute inset-0 bg-black/60 group-hover:bg-black/50 transition-colors" />
                   <div className="relative z-10 text-center">
                     <span className="text-xs font-mono uppercase text-gold tracking-widest">{p.category}</span>
                     <h3 className="text-2xl md:text-3xl font-display font-bold text-white mt-2 group-hover:text-gold transition-colors">{p.title}</h3>
